@@ -9,6 +9,7 @@ var app = express(); // webapp
 var http = require('http').Server(app); // connects http library to server
 var io = require('socket.io')(http); // connect websocket library to server
 var serverPort = 8000;
+var correctNum = 0; // keep count of correct answer, used for final result
 
 
 //---------------------- WEBAPP SERVER SETUP ---------------------------------//
@@ -29,9 +30,9 @@ io.on('connect', function(socket) {
   console.log('a new user connected');
   var questionNum = 0; // keep count of question, used for IF condition.
   socket.on('loaded', function() { // we wait until the client has loaded and contacted us that it is ready to go.
-
-    socket.emit('answer', "Hey, hello I am \"___*-\" a simple chat bot example."); //We start with the introduction;
-    setTimeout(timedQuestion, 5000, socket, "What is your name?"); // Wait a moment and respond with a question.
+    socket.emit('changeBG', 'pink'); // changing the background color I prefer for my chatbot
+    socket.emit('answer', "Hello! I am Chmath, a chatbot who is going to help you excercise your brain! +-×÷"); //We start with the introduction;
+    setTimeout(timedQuestion, 6000, socket, "Before it starts, may I learn what your name is?"); // Wait a moment and respond with a question.
 
   });
   socket.on('message', (data) => { // If we get a new message from the client we process it;
@@ -42,6 +43,7 @@ io.on('connect', function(socket) {
     console.log('user disconnected');
   });
 });
+
 //--------------------------CHAT BOT FUNCTION-------------------------------//
 function bot(data, socket, questionNum) {
   var input = data; // This is generally really terrible from a security point of view ToDo avoid code injection
@@ -51,42 +53,65 @@ function bot(data, socket, questionNum) {
 
   /// These are the main statments that make up the conversation.
   if (questionNum == 0) {
-    answer = 'Hello ' + input + ' :-)'; // output response
-    waitTime = 5000;
-    question = 'How old are you?'; // load next question
+    answer = 'Here we go ' + input + ' !'; // output response
+    waitTime = 3000;
+    question = '5 + 8 =?'; // load next question
   } else if (questionNum == 1) {
-    answer = 'Really, ' + input + ' years old? So that means you were born in: ' + (2018 - parseInt(input)); // output response
-    waitTime = 5000;
-    question = 'Where do you live?'; // load next question
-  } else if (questionNum == 2) {
-    answer = 'Cool! I have never been to ' + input + '.';
-    waitTime = 5000;
-    question = 'Whats your favorite color?'; // load next question
-  } else if (questionNum == 3) {
-    answer = 'Ok, ' + input + ' it is.';
-    socket.emit('changeBG', input.toLowerCase());
-    waitTime = 5000;
-    question = 'Can you still read the font?'; // load next question
-  } else if (questionNum == 4) {
-    if (input.toLowerCase() === 'yes' || input === 1) {
-      answer = 'Perfect!';
-      waitTime = 5000;
-      question = 'Whats your favorite place?';
-    } else if (input.toLowerCase() === 'no' || input === 0) {
-      socket.emit('changeFont', 'white'); /// we really should look up the inverse of what we said befor.
-      answer = ''
-      question = 'How about now?';
-      waitTime = 0;
-      questionNum--; // Here we go back in the question number this can end up in a loop
-    } else {
-      question = 'Can you still read the font?'; // load next question
-      answer = 'I did not understand you. Could you please answer "yes" or "no"?'
-      questionNum--;
-      waitTime = 5000;
+    if (input === '13'){
+      correctNum = correctNum +1;
+      answer = 'You got it! :D'; // correct output response
     }
-    // load next question
+    else {
+      answer = 'Sorry, wrong answer! :('; // wrong output response
+    }
+    waitTime = 3000;
+    question = '23 - 14 =?'; // load next question
+  } else if (questionNum == 2) {
+    if (input === '9'){
+      correctNum = correctNum +1;
+      answer = 'Good job! :D'; // correct output response
+    }
+    else {
+      answer = 'Wrong :( But you will get it next time!'; // wrong output response
+    }
+    waitTime = 3000;
+    question = '7 × 11 =?'; // load next question
+  } else if (questionNum == 3) {
+    if (input === '77'){
+      correctNum = correctNum +1;
+      answer = 'You did it! :D'; // correct output response
+    }
+    else {
+      answer = 'Ahh :( Next one will be better!'; // wrong output response
+    }
+    waitTime = 3000;
+    question = '96 ÷ 6 =?'; // load next question
+  } else if (questionNum == 4) {
+    if (input === '16'){
+      correctNum = correctNum +1;
+      answer = 'Yay, that is correct! :D Let us try one more!'; // correct output response
+    }
+    else {
+      answer = 'Wrong... Try harder for the coming last one!'; // wrong output response
+    }
+    waitTime = 3000;
+    question = '105 ÷ 35 + 6 × 2 - 5 =?'; // load next question
   } else {
-    answer = 'I have nothing more to say!'; // output response
+    if (input === '10'){
+      correctNum = correctNum +1;
+    }
+    if (correctNum === 5){
+      answer = 'You got all questions right, you nailed it! Until next time <3'; // output response for getting all right
+    }
+    else if (correctNum === 2 || correctNum === 3 || correctNum === 4){
+      answer = 'You got ' + correctNum + '/5 questions right, I am proud of you! See you next time <3!'; // output
+    }
+    else if (correctNum === 1){
+      answer = 'You only got ' + correctNum + ' question right...  You will do better next time <3'; // output response
+    }
+    else{
+      answer = 'You did not get any question right... your brain might not be working? Go take some rest <3'; // output for all wrong
+    }
     waitTime = 0;
     question = '';
   }
